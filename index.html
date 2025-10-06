@@ -1,556 +1,540 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="th">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2685.1">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Color Cue Trainer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f0f0;
+            touch-action: manipulation;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+            overflow-y: auto;
+            height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .color-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .color-swatch {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .color-item.selected .color-swatch {
+            border-color: #333;
+            transform: scale(1.1);
+        }
+
+        .color-name {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .checkbox-item input {
+            width: 22px;
+            height: 22px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #007AFF;
+            color: white;
+        }
+
+        .btn-primary:active {
+            background: #0051D5;
+        }
+
+        .btn-secondary {
+            background: #5856D6;
+            color: white;
+        }
+
+        .btn-secondary:active {
+            background: #3634A3;
+        }
+
+        .btn-danger {
+            background: #FF3B30;
+            color: white;
+        }
+
+        .btn-danger:active {
+            background: #C9302C;
+        }
+
+        .play-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            transition: background-color 0.5s ease;
+        }
+
+        .play-screen.active {
+            display: flex;
+        }
+
+        .color-label {
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            text-align: center;
+            padding: 20px;
+        }
+
+        .timer-display {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.3);
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.3);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .close-btn:active {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .countdown-screen {
+            font-size: 120px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 4px 4px 12px rgba(0,0,0,0.7);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .error {
+            color: #FF3B30;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="th"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="apple-mobile-web-app-capable" content="yes"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="mobile-web-app-capable" content="yes"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;Color Cue Trainer&lt;/title&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>* {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin: 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>box-sizing: border-box;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>-webkit-tap-highlight-color: transparent;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>body {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: #f0f0f0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>touch-action: manipulation;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>overflow: hidden;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>height: 100vh;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 100vw;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.container {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>max-width: 500px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin: 0 auto;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>overflow-y: auto;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>height: 100vh;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>h1 {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #333;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 30px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 24px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.section {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: white;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 12px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 2px 8px rgba(0,0,0,0.1);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.section-title {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 16px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 600;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 15px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #555;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.color-grid {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: grid;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>grid-template-columns: repeat(3, 1fr);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>gap: 15px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.color-item {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>flex-direction: column;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.color-swatch {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 70px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>height: 70px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 50%;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: 4px solid transparent;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>transition: all 0.2s;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 2px 4px rgba(0,0,0,0.2);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.color-item.selected .color-swatch {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-color: #333;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>transform: scale(1.1);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.color-name {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 8px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 14px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #666;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.input-group {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 15px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>label {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: block;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 8px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 14px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #555;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>input[type="number"] {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 100%;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 12px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: 2px solid #ddd;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 8px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 16px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.checkbox-group {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>flex-direction: column;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>gap: 12px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.checkbox-item {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.checkbox-item input {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 22px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>height: 22px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-right: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.checkbox-item label {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin: 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 15px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.button-group {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>flex-direction: column;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>gap: 12px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>button {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 16px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 16px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 600;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: none;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>transition: all 0.2s;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.btn-primary {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: #007AFF;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: white;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.btn-primary:active {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: #0051D5;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.btn-secondary {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: #5856D6;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: white;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.btn-secondary:active {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: #3634A3;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.btn-danger {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: #FF3B30;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: white;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.btn-danger:active {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: #C9302C;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.play-screen {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: none;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>position: fixed;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>top: 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>left: 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>width: 100vw;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>height: 100vh;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>justify-content: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>flex-direction: column;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>transition: background-color 0.5s ease;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.play-screen.active {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.color-label {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 48px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: bold;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: white;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-shadow: 2px 2px 8px rgba(0,0,0,0.5);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.timer-display {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>position: absolute;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>top: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>left: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 28px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: bold;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: white;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-shadow: 2px 2px 4px rgba(0,0,0,0.5);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: rgba(0,0,0,0.3);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 10px 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.close-btn {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>position: absolute;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>top: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>right: 20px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: rgba(255,255,255,0.3);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: white;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border: none;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>padding: 12px 24px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 8px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 16px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 600;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>backdrop-filter: blur(10px);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.close-btn:active {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>background: rgba(255,255,255,0.5);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.countdown-screen {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 120px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-weight: bold;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: white;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>text-shadow: 4px 4px 12px rgba(0,0,0,0.7);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>animation: pulse 1s infinite;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>@keyframes pulse {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>0%, 100% { transform: scale(1); }</p>
-<p class="p1"><span class="Apple-converted-space">            </span>50% { transform: scale(1.1); }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.error {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>color: #FF3B30;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>font-size: 14px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 10px;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: none;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.error.show {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>display: block;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="container" id="settingsScreen"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;h1&gt;🎨 Color Cue Trainer&lt;/h1&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="section"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="section-title"&gt;เลือกสีที่จะสุ่ม (2-6 สี)&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="color-grid" id="colorGrid"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="error" id="colorError"&gt;กรุณาเลือกอย่างน้อย 2 สี&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="section"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="section-title"&gt;ตั้งค่าเวลา &amp; โหมด&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="input-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;label&gt;เวลาเปลี่ยนสีอัตโนมัติ (วินาที)&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;input type="number" id="timeInput" min="1" max="30" value="5"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="checkbox-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="checkbox-item"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;input type="checkbox" id="voiceCheck" checked&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;label for="voiceCheck"&gt;พูดชื่อสี&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="checkbox-item"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;input type="checkbox" id="randomCheck" checked&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;label for="randomCheck"&gt;สุ่มสี&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="checkbox-item"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;input type="checkbox" id="tapCheck" checked&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;label for="tapCheck"&gt;แตะเพื่อเปลี่ยน&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="button-group"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button class="btn-primary" onclick="startGame()"&gt;🚀 เริ่ม&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button class="btn-secondary" onclick="previewColor()"&gt;👁️ ลองสุ่มสี 1 ครั้ง&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button class="btn-danger" onclick="resetSettings()"&gt;🔄 คืนค่าเริ่มต้น&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="play-screen" id="playScreen"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="timer-display" id="timerDisplay"&gt;5&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;button class="close-btn" onclick="stopGame()"&gt;ปิด&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="color-label" id="colorLabel"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const COLORS = [</p>
-<p class="p1"><span class="Apple-converted-space">            </span>{ name: 'แดง', nameEng: 'red', hex: '#FF3B30' },</p>
-<p class="p1"><span class="Apple-converted-space">            </span>{ name: 'เหลือง', nameEng: 'yellow', hex: '#FFCC00' },</p>
-<p class="p1"><span class="Apple-converted-space">            </span>{ name: 'เขียว', nameEng: 'green', hex: '#34C759' },</p>
-<p class="p1"><span class="Apple-converted-space">            </span>{ name: 'น้ำเงิน', nameEng: 'blue', hex: '#007AFF' },</p>
-<p class="p1"><span class="Apple-converted-space">            </span>{ name: 'ส้ม', nameEng: 'orange', hex: '#FF9500' },</p>
-<p class="p1"><span class="Apple-converted-space">            </span>{ name: 'ม่วง', nameEng: 'purple', hex: '#AF52DE' }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>];</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>let selectedColors = [];</p>
-<p class="p1"><span class="Apple-converted-space">        </span>let gameInterval = null;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>let currentTime = 0;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>let settings = {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>colors: [0, 1, 2, 3],</p>
-<p class="p1"><span class="Apple-converted-space">            </span>time: 5,</p>
-<p class="p1"><span class="Apple-converted-space">            </span>voice: true,</p>
-<p class="p1"><span class="Apple-converted-space">            </span>random: true,</p>
-<p class="p1"><span class="Apple-converted-space">            </span>tap: true</p>
-<p class="p1"><span class="Apple-converted-space">        </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function initColorGrid() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const grid = document.getElementById('colorGrid');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>COLORS.forEach((color, index) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const item = document.createElement('div');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>item.className = 'color-item';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (settings.colors.includes(index)) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>item.classList.add('selected');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">                </span>item.innerHTML = `</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="color-swatch" style="background-color: ${color.hex}"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="color-name"&gt;${color.name}&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>`;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>item.onclick = () =&gt; toggleColor(index, item);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>grid.appendChild(item);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>});</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function toggleColor(index, element) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const colorIndex = settings.colors.indexOf(index);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (colorIndex &gt; -1) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>settings.colors.splice(colorIndex, 1);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>element.classList.remove('selected');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (settings.colors.length &lt; 6) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>settings.colors.push(index);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>element.classList.add('selected');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('colorError').classList.remove('show');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function previewColor() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (settings.colors.length &lt; 2) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('colorError').classList.add('show');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>return;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const randomIndex = settings.colors[Math.floor(Math.random() * settings.colors.length)];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const color = COLORS[randomIndex];</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const playScreen = document.getElementById('playScreen');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>playScreen.style.backgroundColor = color.hex;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('colorLabel').textContent = color.name;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('timerDisplay').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>playScreen.classList.add('active');</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (settings.voice) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>speak(color.name);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>setTimeout(() =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>playScreen.classList.remove('active');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('timerDisplay').style.display = 'block';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}, 2000);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function startGame() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (settings.colors.length &lt; 2) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('colorError').classList.add('show');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>return;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>settings.time = parseInt(document.getElementById('timeInput').value) || 5;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>settings.voice = document.getElementById('voiceCheck').checked;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>settings.random = document.getElementById('randomCheck').checked;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>settings.tap = document.getElementById('tapCheck').checked;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('settingsScreen').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('playScreen').classList.add('active');</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>startCountdown();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function startCountdown() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let count = 3;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const playScreen = document.getElementById('playScreen');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const label = document.getElementById('colorLabel');</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>playScreen.style.backgroundColor = '#333';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>label.className = 'countdown-screen';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>label.textContent = count;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('timerDisplay').style.display = 'none';</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>const countInterval = setInterval(() =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>count--;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (count &gt; 0) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>label.textContent = count;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>clearInterval(countInterval);</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>label.className = 'color-label';</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>document.getElementById('timerDisplay').style.display = 'block';</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>startColorGame();</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}, 1000);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function startColorGame() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>selectedColors = settings.colors.map(i =&gt; COLORS[i]);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (!settings.random) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>selectedColors.sort((a, b) =&gt; COLORS.indexOf(a) - COLORS.indexOf(b));</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>let currentIndex = 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let lastColorIndex = -1;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let repeatCount = 0;</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>function showNextColor() {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (settings.random) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>let newIndex;</p>
-<p class="p2"><span class="Apple-converted-space">                    </span></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>// ถ้าสีเดิมซ้ำไปแล้ว 2 ครั้ง ต้องเปลี่ยนสีใหม่</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>if (repeatCount &gt;= 2) {</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>do {</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>newIndex = Math.floor(Math.random() * selectedColors.length);</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>} while (newIndex === lastColorIndex &amp;&amp; selectedColors.length &gt; 1);</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>repeatCount = 0;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>newIndex = Math.floor(Math.random() * selectedColors.length);</p>
-<p class="p2"><span class="Apple-converted-space">                        </span></p>
-<p class="p1"><span class="Apple-converted-space">                        </span>// ถ้าได้สีเดิม เพิ่มตัวนับ</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>if (newIndex === lastColorIndex) {</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>repeatCount++;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                            </span>repeatCount = 0;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
-<p class="p2"><span class="Apple-converted-space">                    </span></p>
-<p class="p1"><span class="Apple-converted-space">                    </span>currentIndex = newIndex;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>lastColorIndex = newIndex;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>currentIndex = (currentIndex + 1) % selectedColors.length;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p2"><span class="Apple-converted-space">                </span></p>
-<p class="p1"><span class="Apple-converted-space">                </span>const color = selectedColors[currentIndex];</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('playScreen').style.backgroundColor = color.hex;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('colorLabel').textContent = color.name;</p>
-<p class="p2"><span class="Apple-converted-space">                </span></p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (settings.voice) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>speak(color.name);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p2"><span class="Apple-converted-space">                </span></p>
-<p class="p1"><span class="Apple-converted-space">                </span>currentTime = settings.time;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>updateTimer();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>function updateTimer() {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('timerDisplay').textContent = `${currentTime} วิ`;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>showNextColor();</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>gameInterval = setInterval(() =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>currentTime--;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>updateTimer();</p>
-<p class="p2"><span class="Apple-converted-space">                </span></p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (currentTime &lt;= 0) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>showNextColor();</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}, 1000);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (settings.tap) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('playScreen').onclick = (e) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>if (e.target.id === 'playScreen' || e.target.id === 'colorLabel') {</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>showNextColor();</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">                </span>};</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function stopGame() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>clearInterval(gameInterval);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('playScreen').classList.remove('active');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('playScreen').onclick = null;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('settingsScreen').style.display = 'block';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function speak(text) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if ('speechSynthesis' in window) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const utterance = new SpeechSynthesisUtterance(text);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>utterance.lang = 'th-TH';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>utterance.rate = 0.9;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>speechSynthesis.speak(utterance);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function resetSettings() {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>settings = {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>colors: [0, 1, 2, 3],</p>
-<p class="p1"><span class="Apple-converted-space">                </span>time: 5,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>voice: true,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>random: true,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>tap: true</p>
-<p class="p1"><span class="Apple-converted-space">            </span>};</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('timeInput').value = 5;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('voiceCheck').checked = true;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('randomCheck').checked = true;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('tapCheck').checked = true;</p>
-<p class="p2"><span class="Apple-converted-space">            </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.querySelectorAll('.color-item').forEach((item, index) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (settings.colors.includes(index)) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>item.classList.add('selected');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>item.classList.remove('selected');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>});</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>window.onload = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>initColorGrid();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>};</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+    <div class="container" id="settingsScreen">
+        <h1>🎨 Color Cue Trainer</h1>
+
+        <div class="section">
+            <div class="section-title">เลือกสีที่จะสุ่ม (2-6 สี)</div>
+            <div class="color-grid" id="colorGrid"></div>
+            <div class="error" id="colorError">กรุณาเลือกอย่างน้อย 2 สี</div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">ตั้งค่าเวลา & โหมด</div>
+            <div class="input-group">
+                <label>เวลาเปลี่ยนสีอัตโนมัติ (วินาที)</label>
+                <input type="number" id="timeInput" min="1" max="30" value="5">
+            </div>
+            <div class="checkbox-group">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="voiceCheck" checked>
+                    <label for="voiceCheck">พูดชื่อสี</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="randomCheck" checked>
+                    <label for="randomCheck">สุ่มสี</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="tapCheck" checked>
+                    <label for="tapCheck">แตะเพื่อเปลี่ยน</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" onclick="startGame()">🚀 เริ่ม</button>
+            <button class="btn-secondary" onclick="previewColor()">👁️ ลองสุ่มสี 1 ครั้ง</button>
+            <button class="btn-danger" onclick="resetSettings()">🔄 คืนค่าเริ่มต้น</button>
+        </div>
+    </div>
+
+    <div class="play-screen" id="playScreen">
+        <div class="timer-display" id="timerDisplay">5</div>
+        <button class="close-btn" onclick="stopGame()">ปิด</button>
+        <div class="color-label" id="colorLabel"></div>
+    </div>
+
+    <script>
+        const COLORS = [
+            { name: 'แดง', nameEng: 'red', hex: '#FF3B30' },
+            { name: 'เหลือง', nameEng: 'yellow', hex: '#FFCC00' },
+            { name: 'เขียว', nameEng: 'green', hex: '#34C759' },
+            { name: 'น้ำเงิน', nameEng: 'blue', hex: '#007AFF' },
+            { name: 'ส้ม', nameEng: 'orange', hex: '#FF9500' },
+            { name: 'ม่วง', nameEng: 'purple', hex: '#AF52DE' }
+        ];
+
+        let selectedColors = [];
+        let gameInterval = null;
+        let currentTime = 0;
+        let settings = {
+            colors: [0, 1, 2, 3],
+            time: 5,
+            voice: true,
+            random: true,
+            tap: true
+        };
+
+        function initColorGrid() {
+            const grid = document.getElementById('colorGrid');
+            COLORS.forEach((color, index) => {
+                const item = document.createElement('div');
+                item.className = 'color-item';
+                if (settings.colors.includes(index)) {
+                    item.classList.add('selected');
+                }
+                item.innerHTML = `
+                    <div class="color-swatch" style="background-color: ${color.hex}"></div>
+                    <div class="color-name">${color.name}</div>
+                `;
+                item.onclick = () => toggleColor(index, item);
+                grid.appendChild(item);
+            });
+        }
+
+        function toggleColor(index, element) {
+            const colorIndex = settings.colors.indexOf(index);
+            if (colorIndex > -1) {
+                settings.colors.splice(colorIndex, 1);
+                element.classList.remove('selected');
+            } else {
+                if (settings.colors.length < 6) {
+                    settings.colors.push(index);
+                    element.classList.add('selected');
+                }
+            }
+            document.getElementById('colorError').classList.remove('show');
+        }
+
+        function previewColor() {
+            if (settings.colors.length < 2) {
+                document.getElementById('colorError').classList.add('show');
+                return;
+            }
+            const randomIndex = settings.colors[Math.floor(Math.random() * settings.colors.length)];
+            const color = COLORS[randomIndex];
+            
+            const playScreen = document.getElementById('playScreen');
+            playScreen.style.backgroundColor = color.hex;
+            document.getElementById('colorLabel').textContent = color.name;
+            document.getElementById('timerDisplay').style.display = 'none';
+            playScreen.classList.add('active');
+
+            if (settings.voice) {
+                speak(color.name);
+            }
+
+            setTimeout(() => {
+                playScreen.classList.remove('active');
+                document.getElementById('timerDisplay').style.display = 'block';
+            }, 2000);
+        }
+
+        function startGame() {
+            if (settings.colors.length < 2) {
+                document.getElementById('colorError').classList.add('show');
+                return;
+            }
+
+            settings.time = parseInt(document.getElementById('timeInput').value) || 5;
+            settings.voice = document.getElementById('voiceCheck').checked;
+            settings.random = document.getElementById('randomCheck').checked;
+            settings.tap = document.getElementById('tapCheck').checked;
+
+            document.getElementById('settingsScreen').style.display = 'none';
+            document.getElementById('playScreen').classList.add('active');
+
+            startCountdown();
+        }
+
+        function startCountdown() {
+            let count = 3;
+            const playScreen = document.getElementById('playScreen');
+            const label = document.getElementById('colorLabel');
+            
+            playScreen.style.backgroundColor = '#333';
+            label.className = 'countdown-screen';
+            label.textContent = count;
+            document.getElementById('timerDisplay').style.display = 'none';
+
+            const countInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    label.textContent = count;
+                } else {
+                    clearInterval(countInterval);
+                    label.className = 'color-label';
+                    document.getElementById('timerDisplay').style.display = 'block';
+                    startColorGame();
+                }
+            }, 1000);
+        }
+
+        function startColorGame() {
+            selectedColors = settings.colors.map(i => COLORS[i]);
+            if (!settings.random) {
+                selectedColors.sort((a, b) => COLORS.indexOf(a) - COLORS.indexOf(b));
+            }
+            
+            let currentIndex = 0;
+            let lastColorIndex = -1;
+            let repeatCount = 0;
+            
+            function showNextColor() {
+                if (settings.random) {
+                    let newIndex;
+                    
+                    // ถ้าสีเดิมซ้ำไปแล้ว 2 ครั้ง ต้องเปลี่ยนสีใหม่
+                    if (repeatCount >= 2) {
+                        do {
+                            newIndex = Math.floor(Math.random() * selectedColors.length);
+                        } while (newIndex === lastColorIndex && selectedColors.length > 1);
+                        repeatCount = 0;
+                    } else {
+                        newIndex = Math.floor(Math.random() * selectedColors.length);
+                        
+                        // ถ้าได้สีเดิม เพิ่มตัวนับ
+                        if (newIndex === lastColorIndex) {
+                            repeatCount++;
+                        } else {
+                            repeatCount = 0;
+                        }
+                    }
+                    
+                    currentIndex = newIndex;
+                    lastColorIndex = newIndex;
+                } else {
+                    currentIndex = (currentIndex + 1) % selectedColors.length;
+                }
+                
+                const color = selectedColors[currentIndex];
+                document.getElementById('playScreen').style.backgroundColor = color.hex;
+                document.getElementById('colorLabel').textContent = color.name;
+                
+                if (settings.voice) {
+                    speak(color.name);
+                }
+                
+                currentTime = settings.time;
+                updateTimer();
+            }
+
+            function updateTimer() {
+                document.getElementById('timerDisplay').textContent = `${currentTime} วิ`;
+            }
+
+            showNextColor();
+
+            gameInterval = setInterval(() => {
+                currentTime--;
+                updateTimer();
+                
+                if (currentTime <= 0) {
+                    showNextColor();
+                }
+            }, 1000);
+
+            if (settings.tap) {
+                document.getElementById('playScreen').onclick = (e) => {
+                    if (e.target.id === 'playScreen' || e.target.id === 'colorLabel') {
+                        showNextColor();
+                    }
+                };
+            }
+        }
+
+        function stopGame() {
+            clearInterval(gameInterval);
+            document.getElementById('playScreen').classList.remove('active');
+            document.getElementById('playScreen').onclick = null;
+            document.getElementById('settingsScreen').style.display = 'block';
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'th-TH';
+                utterance.rate = 0.9;
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        function resetSettings() {
+            settings = {
+                colors: [0, 1, 2, 3],
+                time: 5,
+                voice: true,
+                random: true,
+                tap: true
+            };
+            
+            document.getElementById('timeInput').value = 5;
+            document.getElementById('voiceCheck').checked = true;
+            document.getElementById('randomCheck').checked = true;
+            document.getElementById('tapCheck').checked = true;
+            
+            document.querySelectorAll('.color-item').forEach((item, index) => {
+                if (settings.colors.includes(index)) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        window.onload = () => {
+            initColorGrid();
+        };
+    </script>
 </body>
 </html>
