@@ -325,6 +325,24 @@
             tap: true
         };
 
+        function playBeep(frequency = 800, duration = 100) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration / 1000);
+        }
+
         function initColorGrid() {
             const grid = document.getElementById('colorGrid');
             COLORS.forEach((color, index) => {
@@ -406,13 +424,17 @@
             label.className = 'countdown-screen';
             label.textContent = count;
             document.getElementById('timerDisplay').style.display = 'none';
+            
+            playBeep(800, 150);
 
             const countInterval = setInterval(() => {
                 count--;
                 if (count > 0) {
                     label.textContent = count;
+                    playBeep(800, 150);
                 } else {
                     clearInterval(countInterval);
+                    playBeep(1200, 200);
                     label.className = 'color-label';
                     document.getElementById('timerDisplay').style.display = 'block';
                     startColorGame();
@@ -434,7 +456,6 @@
                 if (settings.random) {
                     let newIndex;
                     
-                    // ถ้าสีเดิมซ้ำไปแล้ว 2 ครั้ง ต้องเปลี่ยนสีใหม่
                     if (repeatCount >= 2) {
                         do {
                             newIndex = Math.floor(Math.random() * selectedColors.length);
@@ -443,7 +464,6 @@
                     } else {
                         newIndex = Math.floor(Math.random() * selectedColors.length);
                         
-                        // ถ้าได้สีเดิม เพิ่มตัวนับ
                         if (newIndex === lastColorIndex) {
                             repeatCount++;
                         } else {
