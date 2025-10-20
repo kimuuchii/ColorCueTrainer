@@ -286,6 +286,10 @@
                     <label for="voiceCheck">พูดชื่อสี</label>
                 </div>
                 <div class="checkbox-item">
+                    <input type="checkbox" id="beepCheck" checked>
+                    <label for="beepCheck">เสียงปิ๊บเมื่อเปลี่ยนสี</label>
+                </div>
+                <div class="checkbox-item">
                     <input type="checkbox" id="randomCheck" checked>
                     <label for="randomCheck">สุ่มสี</label>
                 </div>
@@ -330,6 +334,7 @@
             colors: [0, 1, 2, 3],
             time: 5,
             voice: true,
+            beep: true,
             random: true,
             noRepeat: false,
             tap: true
@@ -347,6 +352,8 @@
         }
 
         function playBeep(frequency = 800, duration = 100) {
+            if (!settings.beep) return;
+            
             try {
                 initAudioContext();
                 const oscillator = audioContext.createOscillator();
@@ -358,7 +365,7 @@
                 oscillator.frequency.value = frequency;
                 oscillator.type = 'sine';
                 
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
                 
                 oscillator.start(audioContext.currentTime);
@@ -451,6 +458,7 @@
 
             settings.time = parseInt(document.getElementById('timeInput').value) || 5;
             settings.voice = document.getElementById('voiceCheck').checked;
+            settings.beep = document.getElementById('beepCheck').checked;
             settings.random = document.getElementById('randomCheck').checked;
             settings.noRepeat = document.getElementById('noRepeatCheck').checked;
             settings.tap = document.getElementById('tapCheck').checked;
@@ -547,6 +555,8 @@
                 document.getElementById('playScreen').style.backgroundColor = color.hex;
                 document.getElementById('colorLabel').textContent = color.name;
                 
+                playBeep(1000, 150);
+                
                 if (settings.voice) {
                     speak(color.name);
                 }
@@ -603,6 +613,7 @@
                 colors: [0, 1, 2, 3],
                 time: 5,
                 voice: true,
+                beep: true,
                 random: true,
                 noRepeat: false,
                 tap: true
@@ -610,6 +621,7 @@
             
             document.getElementById('timeInput').value = 5;
             document.getElementById('voiceCheck').checked = true;
+            document.getElementById('beepCheck').checked = true;
             document.getElementById('randomCheck').checked = true;
             document.getElementById('noRepeatCheck').checked = false;
             document.getElementById('tapCheck').checked = true;
