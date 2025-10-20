@@ -369,14 +369,7 @@
             <div class="section-title">ตั้งค่าเสียง Metronome</div>
             <div class="checkbox-item" style="margin-bottom: 15px;">
                 <input type="checkbox" id="metronomeCheck" checked>
-                <label for="metronomeCheck">เปิดเสียง Metronome</label>
-            </div>
-            <div class="slider-group" id="bpmSliderGroup">
-                <label>ความเร็ว (BPM)</label>
-                <div class="slider-container">
-                    <input type="range" id="bpmSlider" min="40" max="208" value="120" step="1">
-                    <span class="slider-value" id="bpmValue">120</span>
-                </div>
+                <label for="metronomeCheck">เปิดเสียง Metronome (ตามวินาที)</label>
             </div>
             <div class="slider-group" id="volumeSliderGroup">
                 <label>ความดังเสียง</label>
@@ -424,7 +417,6 @@
             noRepeat: false,
             tap: true,
             metronome: true,
-            bpm: 120,
             volume: 70
         };
 
@@ -492,12 +484,11 @@
             if (!settings.metronome) return;
             
             stopMetronome();
-            const interval = 60000 / settings.bpm;
             
             playMetronomeClick();
             metronomeInterval = setInterval(() => {
                 playMetronomeClick();
-            }, interval);
+            }, 1000);
         }
 
         function stopMetronome() {
@@ -510,46 +501,38 @@
         function testMetronome() {
             unlockAudio();
             settings.metronome = document.getElementById('metronomeCheck').checked;
-            settings.bpm = parseInt(document.getElementById('bpmSlider').value);
             settings.volume = parseInt(document.getElementById('volumeSlider').value);
             
             if (!settings.metronome) return;
             
             let count = 0;
-            const maxClicks = 8;
+            const maxClicks = 5;
             
             playMetronomeClick();
             count++;
             
-            const interval = 60000 / settings.bpm;
             const testInterval = setInterval(() => {
                 playMetronomeClick();
                 count++;
                 if (count >= maxClicks) {
                     clearInterval(testInterval);
                 }
-            }, interval);
+            }, 1000);
         }
-
-        document.getElementById('bpmSlider').addEventListener('input', (e) => {
-            document.getElementById('bpmValue').textContent = e.target.value;
-        });
 
         document.getElementById('volumeSlider').addEventListener('input', (e) => {
             document.getElementById('volumeValue').textContent = e.target.value + '%';
         });
 
         document.getElementById('metronomeCheck').addEventListener('change', (e) => {
-            const sliders = document.querySelectorAll('#bpmSliderGroup, #volumeSliderGroup');
-            sliders.forEach(slider => {
-                if (e.target.checked) {
-                    slider.style.opacity = '1';
-                    slider.style.pointerEvents = 'auto';
-                } else {
-                    slider.style.opacity = '0.5';
-                    slider.style.pointerEvents = 'none';
-                }
-            });
+            const slider = document.getElementById('volumeSliderGroup');
+            if (e.target.checked) {
+                slider.style.opacity = '1';
+                slider.style.pointerEvents = 'auto';
+            } else {
+                slider.style.opacity = '0.5';
+                slider.style.pointerEvents = 'none';
+            }
         });
 
         function initColorGrid() {
@@ -639,7 +622,6 @@
             settings.noRepeat = document.getElementById('noRepeatCheck').checked;
             settings.tap = document.getElementById('tapCheck').checked;
             settings.metronome = document.getElementById('metronomeCheck').checked;
-            settings.bpm = parseInt(document.getElementById('bpmSlider').value);
             settings.volume = parseInt(document.getElementById('volumeSlider').value);
 
             if (!settings.random) {
@@ -814,7 +796,6 @@
                 noRepeat: false,
                 tap: true,
                 metronome: true,
-                bpm: 120,
                 volume: 70
             };
             
@@ -824,8 +805,6 @@
             document.getElementById('noRepeatCheck').checked = false;
             document.getElementById('tapCheck').checked = true;
             document.getElementById('metronomeCheck').checked = true;
-            document.getElementById('bpmSlider').value = 120;
-            document.getElementById('bpmValue').textContent = '120';
             document.getElementById('volumeSlider').value = 70;
             document.getElementById('volumeValue').textContent = '70%';
             
@@ -839,11 +818,9 @@
                 }
             });
 
-            const sliders = document.querySelectorAll('#bpmSliderGroup, #volumeSliderGroup');
-            sliders.forEach(slider => {
-                slider.style.opacity = '1';
-                slider.style.pointerEvents = 'auto';
-            });
+            const slider = document.getElementById('volumeSliderGroup');
+            slider.style.opacity = '1';
+            slider.style.pointerEvents = 'auto';
         }
 
         window.onload = () => {
