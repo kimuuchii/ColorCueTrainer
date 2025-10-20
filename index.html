@@ -137,6 +137,52 @@
             pointer-events: none;
         }
 
+        .slider-group {
+            margin-bottom: 15px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #007AFF;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #007AFF;
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #007AFF;
+            min-width: 60px;
+            text-align: right;
+        }
+
         .button-group {
             display: flex;
             flex-direction: column;
@@ -262,6 +308,25 @@
         .error.show {
             display: block;
         }
+
+        .metronome-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            display: none;
+            animation: metronomePulse 0.15s ease-out;
+        }
+
+        @keyframes metronomePulse {
+            0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+            50% { transform: translateX(-50%) scale(1.2); opacity: 1; }
+            100% { transform: translateX(-50%) scale(1); opacity: 0.5; }
+        }
     </style>
 </head>
 <body>
@@ -286,10 +351,6 @@
                     <label for="voiceCheck">พูดชื่อสี</label>
                 </div>
                 <div class="checkbox-item">
-                    <input type="checkbox" id="beepCheck" checked>
-                    <label for="beepCheck">เสียงปิ๊บเมื่อเปลี่ยนสี</label>
-                </div>
-                <div class="checkbox-item">
                     <input type="checkbox" id="randomCheck" checked>
                     <label for="randomCheck">สุ่มสี</label>
                 </div>
@@ -304,8 +365,31 @@
             </div>
         </div>
 
+        <div class="section">
+            <div class="section-title">ตั้งค่าเสียง Metronome</div>
+            <div class="checkbox-item" style="margin-bottom: 15px;">
+                <input type="checkbox" id="metronomeCheck" checked>
+                <label for="metronomeCheck">เปิดเสียง Metronome</label>
+            </div>
+            <div class="slider-group" id="bpmSliderGroup">
+                <label>ความเร็ว (BPM)</label>
+                <div class="slider-container">
+                    <input type="range" id="bpmSlider" min="40" max="208" value="120" step="1">
+                    <span class="slider-value" id="bpmValue">120</span>
+                </div>
+            </div>
+            <div class="slider-group" id="volumeSliderGroup">
+                <label>ความดังเสียง</label>
+                <div class="slider-container">
+                    <input type="range" id="volumeSlider" min="0" max="100" value="70" step="1">
+                    <span class="slider-value" id="volumeValue">70%</span>
+                </div>
+            </div>
+        </div>
+
         <div class="button-group">
             <button class="btn-primary" onclick="startGame()">🚀 เริ่ม</button>
+            <button class="btn-secondary" onclick="testMetronome()">🎵 ทดสอบเสียง Metronome</button>
             <button class="btn-secondary" onclick="previewColor()">👁️ ลองสุ่มสี 1 ครั้ง</button>
             <button class="btn-danger" onclick="resetSettings()">🔄 คืนค่าเริ่มต้น</button>
         </div>
@@ -315,6 +399,7 @@
         <div class="timer-display" id="timerDisplay">5</div>
         <button class="close-btn" onclick="stopGame()">ปิด</button>
         <div class="color-label" id="colorLabel"></div>
+        <div class="metronome-indicator" id="metronomeIndicator"></div>
     </div>
 
     <script>
@@ -329,51 +414,143 @@
 
         let selectedColors = [];
         let gameInterval = null;
+        let metronomeInterval = null;
         let currentTime = 0;
         let settings = {
             colors: [0, 1, 2, 3],
             time: 5,
             voice: true,
-            beep: true,
             random: true,
             noRepeat: false,
-            tap: true
+            tap: true,
+            metronome: true,
+            bpm: 120,
+            volume: 70
         };
 
         let audioContext = null;
+        let isAudioUnlocked = false;
 
         function initAudioContext() {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
+            return audioContext;
+        }
+
+        async function unlockAudio() {
+            if (isAudioUnlocked) return;
+            
+            const context = initAudioContext();
+            if (context.state === 'suspended') {
+                await context.resume();
+            }
+            
+            const buffer = context.createBuffer(1, 1, 22050);
+            const source = context.createBufferSource();
+            source.buffer = buffer;
+            source.connect(context.destination);
+            source.start(0);
+            
+            isAudioUnlocked = true;
+        }
+
+        function playMetronomeClick() {
+            if (!settings.metronome) return;
+            
+            try {
+                const context = audioContext || initAudioContext();
+                const oscillator = context.createOscillator();
+                const gainNode = context.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(context.destination);
+                
+                oscillator.frequency.value = 1000;
+                oscillator.type = 'sine';
+                
+                const volume = settings.volume / 100;
+                gainNode.gain.setValueAtTime(volume, context.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.05);
+                
+                oscillator.start(context.currentTime);
+                oscillator.stop(context.currentTime + 0.05);
+
+                const indicator = document.getElementById('metronomeIndicator');
+                if (indicator && document.getElementById('playScreen').classList.contains('active')) {
+                    indicator.style.display = 'block';
+                    setTimeout(() => {
+                        indicator.style.display = 'none';
+                    }, 150);
+                }
+            } catch (e) {
+                console.log('Metronome error:', e);
             }
         }
 
-        function playBeep(frequency = 800, duration = 100) {
-            if (!settings.beep) return;
+        function startMetronome() {
+            if (!settings.metronome) return;
             
-            try {
-                initAudioContext();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.frequency.value = frequency;
-                oscillator.type = 'sine';
-                
-                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + duration / 1000);
-            } catch (e) {
-                console.log('Audio error:', e);
+            stopMetronome();
+            const interval = 60000 / settings.bpm;
+            
+            playMetronomeClick();
+            metronomeInterval = setInterval(() => {
+                playMetronomeClick();
+            }, interval);
+        }
+
+        function stopMetronome() {
+            if (metronomeInterval) {
+                clearInterval(metronomeInterval);
+                metronomeInterval = null;
             }
         }
+
+        function testMetronome() {
+            unlockAudio();
+            settings.metronome = document.getElementById('metronomeCheck').checked;
+            settings.bpm = parseInt(document.getElementById('bpmSlider').value);
+            settings.volume = parseInt(document.getElementById('volumeSlider').value);
+            
+            if (!settings.metronome) return;
+            
+            let count = 0;
+            const maxClicks = 8;
+            
+            playMetronomeClick();
+            count++;
+            
+            const interval = 60000 / settings.bpm;
+            const testInterval = setInterval(() => {
+                playMetronomeClick();
+                count++;
+                if (count >= maxClicks) {
+                    clearInterval(testInterval);
+                }
+            }, interval);
+        }
+
+        document.getElementById('bpmSlider').addEventListener('input', (e) => {
+            document.getElementById('bpmValue').textContent = e.target.value;
+        });
+
+        document.getElementById('volumeSlider').addEventListener('input', (e) => {
+            document.getElementById('volumeValue').textContent = e.target.value + '%';
+        });
+
+        document.getElementById('metronomeCheck').addEventListener('change', (e) => {
+            const sliders = document.querySelectorAll('#bpmSliderGroup, #volumeSliderGroup');
+            sliders.forEach(slider => {
+                if (e.target.checked) {
+                    slider.style.opacity = '1';
+                    slider.style.pointerEvents = 'auto';
+                } else {
+                    slider.style.opacity = '0.5';
+                    slider.style.pointerEvents = 'none';
+                }
+            });
+        });
 
         function initColorGrid() {
             const grid = document.getElementById('colorGrid');
@@ -427,7 +604,7 @@
                 return;
             }
 
-            initAudioContext();
+            unlockAudio();
             
             const randomIndex = settings.colors[Math.floor(Math.random() * settings.colors.length)];
             const color = COLORS[randomIndex];
@@ -454,14 +631,16 @@
                 return;
             }
 
-            initAudioContext();
+            unlockAudio();
 
             settings.time = parseInt(document.getElementById('timeInput').value) || 5;
             settings.voice = document.getElementById('voiceCheck').checked;
-            settings.beep = document.getElementById('beepCheck').checked;
             settings.random = document.getElementById('randomCheck').checked;
             settings.noRepeat = document.getElementById('noRepeatCheck').checked;
             settings.tap = document.getElementById('tapCheck').checked;
+            settings.metronome = document.getElementById('metronomeCheck').checked;
+            settings.bpm = parseInt(document.getElementById('bpmSlider').value);
+            settings.volume = parseInt(document.getElementById('volumeSlider').value);
 
             if (!settings.random) {
                 settings.noRepeat = false;
@@ -483,16 +662,33 @@
             label.textContent = count;
             document.getElementById('timerDisplay').style.display = 'none';
             
-            playBeep(800, 150);
+            playMetronomeClick();
 
             const countInterval = setInterval(() => {
                 count--;
                 if (count > 0) {
                     label.textContent = count;
-                    playBeep(800, 150);
+                    playMetronomeClick();
                 } else {
                     clearInterval(countInterval);
-                    playBeep(1200, 200);
+                    
+                    const context = audioContext || initAudioContext();
+                    const oscillator = context.createOscillator();
+                    const gainNode = context.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(context.destination);
+                    
+                    oscillator.frequency.value = 1200;
+                    oscillator.type = 'sine';
+                    
+                    const volume = settings.volume / 100;
+                    gainNode.gain.setValueAtTime(volume, context.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.2);
+                    
+                    oscillator.start(context.currentTime);
+                    oscillator.stop(context.currentTime + 0.2);
+                    
                     label.className = 'color-label';
                     document.getElementById('timerDisplay').style.display = 'block';
                     startColorGame();
@@ -512,6 +708,8 @@
             if (!settings.random) {
                 selectedColors.sort((a, b) => COLORS.indexOf(a) - COLORS.indexOf(b));
             }
+
+            startMetronome();
             
             function showNextColor() {
                 let color;
@@ -555,8 +753,6 @@
                 document.getElementById('playScreen').style.backgroundColor = color.hex;
                 document.getElementById('colorLabel').textContent = color.name;
                 
-                playBeep(1000, 150);
-                
                 if (settings.voice) {
                     speak(color.name);
                 }
@@ -593,6 +789,7 @@
 
         function stopGame() {
             clearInterval(gameInterval);
+            stopMetronome();
             document.getElementById('playScreen').classList.remove('active');
             document.getElementById('playScreen').onclick = null;
             document.getElementById('settingsScreen').style.display = 'block';
@@ -613,18 +810,24 @@
                 colors: [0, 1, 2, 3],
                 time: 5,
                 voice: true,
-                beep: true,
                 random: true,
                 noRepeat: false,
-                tap: true
+                tap: true,
+                metronome: true,
+                bpm: 120,
+                volume: 70
             };
             
             document.getElementById('timeInput').value = 5;
             document.getElementById('voiceCheck').checked = true;
-            document.getElementById('beepCheck').checked = true;
             document.getElementById('randomCheck').checked = true;
             document.getElementById('noRepeatCheck').checked = false;
             document.getElementById('tapCheck').checked = true;
+            document.getElementById('metronomeCheck').checked = true;
+            document.getElementById('bpmSlider').value = 120;
+            document.getElementById('bpmValue').textContent = '120';
+            document.getElementById('volumeSlider').value = 70;
+            document.getElementById('volumeValue').textContent = '70%';
             
             updateNoRepeatCheckbox();
             
@@ -635,12 +838,21 @@
                     item.classList.remove('selected');
                 }
             });
+
+            const sliders = document.querySelectorAll('#bpmSliderGroup, #volumeSliderGroup');
+            sliders.forEach(slider => {
+                slider.style.opacity = '1';
+                slider.style.pointerEvents = 'auto';
+            });
         }
 
         window.onload = () => {
             initColorGrid();
             updateNoRepeatCheckbox();
         };
+
+        document.addEventListener('touchstart', unlockAudio, { once: true });
+        document.addEventListener('click', unlockAudio, { once: true });
     </script>
 </body>
 </html>
