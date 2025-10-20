@@ -132,6 +132,11 @@
             font-size: 15px;
         }
 
+        .checkbox-item.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
         .button-group {
             display: flex;
             flex-direction: column;
@@ -284,6 +289,10 @@
                     <input type="checkbox" id="randomCheck" checked>
                     <label for="randomCheck">สุ่มสี</label>
                 </div>
+                <div class="checkbox-item" id="noRepeatItem">
+                    <input type="checkbox" id="noRepeatCheck">
+                    <label for="noRepeatCheck">สุ่มไม่ซ้ำ (วนรอบ)</label>
+                </div>
                 <div class="checkbox-item">
                     <input type="checkbox" id="tapCheck" checked>
                     <label for="tapCheck">แตะเพื่อเปลี่ยน</label>
@@ -322,25 +331,41 @@
             time: 5,
             voice: true,
             random: true,
+            noRepeat: false,
             tap: true
         };
 
+        let audioContext = null;
+
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
         function playBeep(frequency = 800, duration = 100) {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.value = frequency;
-            oscillator.type = 'sine';
-            
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + duration / 1000);
+            try {
+                initAudioContext();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration / 1000);
+            } catch (e) {
+                console.log('Audio error:', e);
+            }
         }
 
         function initColorGrid() {
@@ -374,11 +399,29 @@
             document.getElementById('colorError').classList.remove('show');
         }
 
+        function updateNoRepeatCheckbox() {
+            const randomCheck = document.getElementById('randomCheck');
+            const noRepeatItem = document.getElementById('noRepeatItem');
+            const noRepeatCheck = document.getElementById('noRepeatCheck');
+            
+            if (!randomCheck.checked) {
+                noRepeatItem.classList.add('disabled');
+                noRepeatCheck.checked = false;
+            } else {
+                noRepeatItem.classList.remove('disabled');
+            }
+        }
+
+        document.getElementById('randomCheck').addEventListener('change', updateNoRepeatCheckbox);
+
         function previewColor() {
             if (settings.colors.length < 2) {
                 document.getElementById('colorError').classList.add('show');
                 return;
             }
+
+            initAudioContext();
+            
             const randomIndex = settings.colors[Math.floor(Math.random() * settings.colors.length)];
             const color = COLORS[randomIndex];
             
@@ -388,7 +431,7 @@
             document.getElementById('timerDisplay').style.display = 'none';
             playScreen.classList.add('active');
 
-            if (settings.voice) {
+            if (document.getElementById('voiceCheck').checked) {
                 speak(color.name);
             }
 
@@ -404,10 +447,17 @@
                 return;
             }
 
+            initAudioContext();
+
             settings.time = parseInt(document.getElementById('timeInput').value) || 5;
             settings.voice = document.getElementById('voiceCheck').checked;
             settings.random = document.getElementById('randomCheck').checked;
+            settings.noRepeat = document.getElementById('noRepeatCheck').checked;
             settings.tap = document.getElementById('tapCheck').checked;
+
+            if (!settings.random) {
+                settings.noRepeat = false;
+            }
 
             document.getElementById('settingsScreen').style.display = 'none';
             document.getElementById('playScreen').classList.add('active');
@@ -444,16 +494,31 @@
 
         function startColorGame() {
             selectedColors = settings.colors.map(i => COLORS[i]);
-            if (!settings.random) {
-                selectedColors.sort((a, b) => COLORS.indexOf(a) - COLORS.indexOf(b));
-            }
             
             let currentIndex = 0;
             let lastColorIndex = -1;
             let repeatCount = 0;
+            let shuffledPool = [];
+            let poolIndex = 0;
+
+            if (!settings.random) {
+                selectedColors.sort((a, b) => COLORS.indexOf(a) - COLORS.indexOf(b));
+            }
             
             function showNextColor() {
-                if (settings.random) {
+                let color;
+
+                if (settings.noRepeat && settings.random) {
+                    if (poolIndex >= shuffledPool.length) {
+                        shuffledPool = [...selectedColors];
+                        for (let i = shuffledPool.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [shuffledPool[i], shuffledPool[j]] = [shuffledPool[j], shuffledPool[i]];
+                        }
+                        poolIndex = 0;
+                    }
+                    color = shuffledPool[poolIndex++];
+                } else if (settings.random) {
                     let newIndex;
                     
                     if (repeatCount >= 2) {
@@ -473,11 +538,12 @@
                     
                     currentIndex = newIndex;
                     lastColorIndex = newIndex;
+                    color = selectedColors[currentIndex];
                 } else {
                     currentIndex = (currentIndex + 1) % selectedColors.length;
+                    color = selectedColors[currentIndex];
                 }
                 
-                const color = selectedColors[currentIndex];
                 document.getElementById('playScreen').style.backgroundColor = color.hex;
                 document.getElementById('colorLabel').textContent = color.name;
                 
@@ -510,6 +576,8 @@
                         showNextColor();
                     }
                 };
+            } else {
+                document.getElementById('playScreen').onclick = null;
             }
         }
 
@@ -522,6 +590,7 @@
 
         function speak(text) {
             if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'th-TH';
                 utterance.rate = 0.9;
@@ -535,13 +604,17 @@
                 time: 5,
                 voice: true,
                 random: true,
+                noRepeat: false,
                 tap: true
             };
             
             document.getElementById('timeInput').value = 5;
             document.getElementById('voiceCheck').checked = true;
             document.getElementById('randomCheck').checked = true;
+            document.getElementById('noRepeatCheck').checked = false;
             document.getElementById('tapCheck').checked = true;
+            
+            updateNoRepeatCheckbox();
             
             document.querySelectorAll('.color-item').forEach((item, index) => {
                 if (settings.colors.includes(index)) {
@@ -554,6 +627,7 @@
 
         window.onload = () => {
             initColorGrid();
+            updateNoRepeatCheckbox();
         };
     </script>
 </body>
